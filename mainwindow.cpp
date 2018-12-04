@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "utils/filereader.h"
+#include "utils/directoryscanner.h"
 
 #include <QCommonStyle>
 #include <QDesktopWidget>
@@ -13,10 +13,13 @@
 #include <QProgressBar>
 #include <QFileInfo>
 #include <QLabel>
+#include <QtCore/QThread>
+#include <QMovie>
 
 #include <map>
 #include <vector>
 #include <list>
+#include <string>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -25,8 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), qApp->desktop()->availableGeometry()));
 
-    ui->directoriesTable->horizontalHeader()->setStretchLastSection(true);
     ui->detailsList->setHidden(true);
+    ui->cancelButton->setHidden(true);
 
     QCommonStyle style;
     ui->actionAdd_Directory->setIcon(style.standardIcon(QCommonStyle::SP_DialogOpenButton));
@@ -39,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionExit, &QAction::triggered, this, &QWidget::close);
 
     connect(ui->scanButton, &QAbstractButton::clicked, this, &MainWindow::directories_scan);
+    connect(ui->inputString, &QLineEdit::returnPressed, this, &MainWindow::directories_scan);
 }
 
 MainWindow::~MainWindow() {}
@@ -53,8 +57,8 @@ std::map<parameters, bool> MainWindow::get_parameters() {
 }
 
 void MainWindow::notification(const char* content,
-                               const char* window_title = "Notification",
-                               int time = 3000) {
+                              const char* window_title = "Notification",
+                              int time = 3000) {
     QMessageBox* msgbox = new QMessageBox(QMessageBox::Information,
         QString(window_title), QString(content),
         QMessageBox::StandardButtons(QMessageBox::Ok), this, Qt::WindowType::Popup);
@@ -67,6 +71,19 @@ void MainWindow::notification(const char* content,
     timer->start(time);
 }
 
+void MainWindow::result_ready() {
+    ui->scanButton->setDisabled(false);
+    connect(ui->inputString, &QLineEdit::returnPressed, this, &MainWindow::directories_scan);
+    ui->cancelButton->setHidden(true);
+
+    int count = ui->stringsList->invisibleRootItem()->childCount();
+    if (count == 0) {
+        notification("No matches found");
+    } else {
+        notification((std::to_string(count) + " matches found").c_str());
+    }
+}
+
 void MainWindow::details_manager() {
     QPushButton* sender = static_cast<QPushButton*>(QObject::sender());
     if (sender->text() == "hide details") {
@@ -76,16 +93,6 @@ void MainWindow::details_manager() {
         ui->detailsList->setHidden(false);
         sender->setText("hide details");
     }
-}
-
-void MainWindow::file_trouble_message(const char* message, int quantity) {
-    ui->statusBar->showMessage(QString("Troubled ") + message + ": " +
-        QString(QString::number(quantity)) + " file(s) troubled " + message);
-    QPushButton* button = new QPushButton("show details");
-    ui->mainGrid->addWidget(button);
-    connect(button, &QPushButton::clicked, this, &MainWindow::details_manager);
-    connect(this, &MainWindow::clear_details, button, &QPushButton::deleteLater);
-    connect(this, &MainWindow::clear_details, ui->statusBar, &QStatusBar::clearMessage);
 }
 
 void MainWindow::select_directory() {
@@ -107,8 +114,8 @@ void MainWindow::add_directory(QString const& dir) {
 
         if (cur_dir.indexOf(dir) == 0) {
             while (i < ui->directoriesTable->rowCount()) {
-                if (static_cast<QProgressBar*>(ui->
-                        directoriesTable->cellWidget(i, 0))->format().indexOf(dir) == 0) {
+                if (static_cast<QProgressBar*>(ui->directoriesTable->
+                       cellWidget(i, 0))->format().indexOf(dir) == 0) {
                     ui->directoriesTable->removeRow(i);
                 } else {
                     ++i;
@@ -135,66 +142,6 @@ void MainWindow::remove_directories_from_list() {
     }
 }
 
-std::vector<int> z_function(QString const& str) {
-    std::vector<int> zf(str.size(), 0);
-    int left = 0;
-    int right = 0;
-    for (int i = 1; i < str.size(); ++i) {
-        zf[i] = std::max(0, std::min(right - i, zf[i - left]));
-        while (i + zf[i] < str.size() && str[zf[i]] == str[i + zf[i]]) {
-            zf[i]++;
-        }
-        if (i + zf[i] > right) {
-            left = i;
-            right = i + zf[i];
-        }
-    }
-    return std::move(zf);
-}
-
-bool MainWindow::substring_find(QString const& file_name, QString const& relative_path,
-                                QString const& substring, std::vector<int> zf, bool first_match) {
-    FileReader file_reader(file_name, substring.size());
-    if (!file_reader.open()) {
-        return false;
-    }
-    const int size = substring.size();
-    int left = 0;
-    int right = 0;
-    int line_number = 1;
-    int last_line = -1;
-    std::vector<int> z_cache(size, 0);
-
-    for (int i = 0; file_reader.readable(i); ++i) {
-        int cur = i % size;
-        z_cache[cur] = std::max(0, std::min(right - i, zf[i - left]));
-        while (file_reader.readable(i) && z_cache[cur] < size &&
-               file_reader.readable(i + z_cache[cur]) &&
-               file_reader[i + z_cache[cur]] ==
-                    substring[z_cache[cur]]) {
-            z_cache[cur]++;
-        }
-        if (i + z_cache[cur] > right) {
-            left = i;
-            right = i + z_cache[cur];
-        }
-        if (z_cache[cur] == substring.size()) {
-            ui->stringsList->addItem(new QListWidgetItem(relative_path + ": " +
-                                                         QString::number(line_number) + " " +
-                                                         QString::number(i - last_line)));
-            if (first_match) {
-                return true;
-            }
-        }
-
-        if (file_reader[i] == QChar('\n')) {
-            ++line_number;
-            last_line = i;
-        }
-    }
-    return true;
-}
-
 void MainWindow::directories_scan() {
     ui->stringsList->clear();
     ui->detailsList->clear();
@@ -208,57 +155,62 @@ void MainWindow::directories_scan() {
     for (int i = 0; i < ui->directoriesTable->rowCount(); ++i) {
         static_cast<QProgressBar*>(ui->directoriesTable->cellWidget(i, 0))->setValue(0);
     }
-
     QString input_string = ui->inputString->text();
     if (input_string.size() == 0) {
         notification("Please write a string to search for");
         return;
     }
-    auto params = get_parameters();
 
-    QFlags<QDirIterator::IteratorFlag> it_flags = params[parameters::Recursive] ?
-        QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
-    QFlags<QDir::Filter> dir_flags = {QDir::NoDotAndDotDot, QDir::Files};
-    if (params[parameters::Hidden]) {
-        dir_flags |= QDir::Hidden;
-    }
-    std::vector<int> zf = z_function(input_string);
+    ui->scanButton->setDisabled(true);
+    ui->cancelButton->setHidden(false);
+    disconnect(ui->inputString, &QLineEdit::returnPressed, this, &MainWindow::directories_scan);
+    std::list<QString> directories;
 
     for (int i = 0; i < ui->directoriesTable->rowCount(); ++i) {
-        QProgressBar* pb = (QProgressBar*) ui->directoriesTable->cellWidget(i, 0);
-        QString directory_name = pb->format();
-        size_t directory_prefix = directory_name.size() - QDir(directory_name).dirName().size();
-        size_t directory_size = 0;
-        size_t current = 0;
+        QString directory_name = static_cast<QProgressBar*>(ui->directoriesTable->cellWidget(i, 0))->format();
+        directories.push_back(directory_name);
+    }
+    DirectoryScanner* dir_scanner = new DirectoryScanner(directories,
+        input_string, get_parameters());
+    QThread* worker_thread = new QThread();
+    dir_scanner->moveToThread(worker_thread);
+    connect(dir_scanner, &DirectoryScanner::new_match, this, &MainWindow::catch_match);
+    connect(dir_scanner, &DirectoryScanner::new_error, this, &MainWindow::catch_error);
+    connect(dir_scanner, &DirectoryScanner::progress, this, &MainWindow::set_progress);
+    connect(dir_scanner, &DirectoryScanner::finished, worker_thread, &QThread::quit);
+    connect(dir_scanner, &DirectoryScanner::finished, dir_scanner, &DirectoryScanner::deleteLater);
+    connect(dir_scanner, &DirectoryScanner::finished, this, &MainWindow::result_ready);
+    connect(worker_thread, &QThread::finished, worker_thread, &QThread::deleteLater);
+    connect(worker_thread, &QThread::started, dir_scanner, &DirectoryScanner::scan_directories);
+    connect(ui->cancelButton, &QPushButton::clicked, worker_thread, &QThread::requestInterruption);
+    worker_thread->start();
+}
 
-        for (QDirIterator it(directory_name, dir_flags, it_flags); it.hasNext(); ) {
-            it.next();
-            directory_size += it.fileInfo().size();
-        }
-
-        if (directory_size == 0) {
-            pb->setValue(100);
-            continue;
-        }
-
-        for (QDirIterator it(directory_name, dir_flags, it_flags); it.hasNext(); ) {
-            it.next();
-            QString file_path = it.filePath();
-            QString relative_path = file_path.right(file_path.size() - directory_prefix);
-            if (!substring_find(file_path, relative_path, input_string, zf,
-                                params[parameters::FirstMatch])) {
-                ui->detailsList->addItem(new QListWidgetItem(relative_path));
-            }
-            current += it.fileInfo().size();
-            pb->setValue((double) (current * 100 / directory_size));
+void MainWindow::catch_match(QString const& file_name, std::list<std::pair<int, int>> const& coordinates, bool first_match) {
+    QTreeWidgetItem* parent = new QTreeWidgetItem(ui->stringsList);
+    parent->setText(0, file_name);
+    ui->stringsList->insertTopLevelItem(0, parent);
+    if (!first_match) {
+        for (auto i: coordinates) {
+            QTreeWidgetItem* item = new QTreeWidgetItem(parent);
+            item->setText(0, QString::number(i.first) + ": " + QString::number(i.second));
         }
     }
+}
 
-    if (ui->stringsList->count() == 0) {
-        notification("No match found");
+void MainWindow::catch_error(QString const& file_name) {
+    if (ui->detailsList->count() == 0) {
+        QPushButton* button = new QPushButton("show details");
+        ui->mainGrid->addWidget(button);
+        connect(button, &QPushButton::clicked, this, &MainWindow::details_manager);
+        connect(this, &MainWindow::clear_details, button, &QPushButton::deleteLater);
+        connect(this, &MainWindow::clear_details, ui->statusBar, &QStatusBar::clearMessage);
     }
+    ui->detailsList->addItem(new QListWidgetItem(file_name));
+    ui->statusBar->showMessage(QString("Troubled reading: ") +
+                                QString(QString::number(ui->detailsList->count())) + " file(s) troubled reading");
+}
 
-    if (ui->detailsList->count() > 0) {
-        file_trouble_message("reading", ui->detailsList->count());
-    }
+void MainWindow::set_progress(int row, double progress) {
+    static_cast<QProgressBar*>(ui->directoriesTable->cellWidget(row, 0))->setValue(progress);
 }

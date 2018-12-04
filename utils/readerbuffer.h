@@ -14,6 +14,7 @@ public:
 
     size_t start_index = 0;
     size_t end_index = 0;
+
 private:
     char* buffer = nullptr;
     size_t buffer_size;

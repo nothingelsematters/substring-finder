@@ -26,7 +26,7 @@ bool FileReader::readable(size_t i) {
     }
     index = new_index;
     using_first = !using_first;
-    return true;
+    return readable(i);
 }
 
 char FileReader::operator[](size_t i) {

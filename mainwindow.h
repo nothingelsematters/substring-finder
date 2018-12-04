@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "parameters.h"
+#include "utils/parameters.h"
 
 #include <QMainWindow>
 #include <QTreeWidget>
@@ -28,17 +28,19 @@ private slots:
 
     void directories_scan();
 
+    void catch_match(QString const& file_name, std::list<std::pair<int, int>> const& coordinates, bool first_match);
+    void catch_error(QString const& file_name);
+    void set_progress(int row, double progress);
+    void result_ready();
+
 signals:
     void clear_details();
 
 private:
     void add_directory(QString const& dir);
     std::map<parameters, bool> get_parameters();
-    bool substring_find(QString const& file_name, const QString &relative_path, QString const& substring,
-                        std::vector<int> zf, bool first_match);
 
     void notification(const char* content, const char *window_title, int time);
-    void file_trouble_message(const char* message, int quantity);
 
     std::unique_ptr<Ui::MainWindow> ui;
 };

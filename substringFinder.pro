@@ -26,13 +26,15 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     utils/filereader.cpp \
-    utils/readerbuffer.cpp
+    utils/readerbuffer.cpp \
+    utils/directoryscanner.cpp
 
 HEADERS += \
         mainwindow.h \
-        parameters.h \
+        utils/parameters.h \
     utils/filereader.h \
-    utils/readerbuffer.h
+    utils/readerbuffer.h \
+    utils/directoryscanner.h
 
 FORMS += \
         mainwindow.ui

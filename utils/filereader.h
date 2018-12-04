@@ -7,7 +7,7 @@
 
 class FileReader {
 public:
-    explicit FileReader(QString const& file_name, size_t buffer_size);
+    explicit FileReader(QString const& file_name, size_t buffer_size = 100);
     ~FileReader();
 
     bool open();
