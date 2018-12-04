@@ -55,13 +55,6 @@
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="showLineCheckBox">
-          <property name="text">
-           <string>Show the Line</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item row="2" column="0">
