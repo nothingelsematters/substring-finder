@@ -46,7 +46,7 @@ void TrigramManager::manage_trigrams() {
 TrigramWorker* TrigramManager::make_worker(size_t index, size_t quantity) {
     TrigramWorker* new_worker = new TrigramWorker();
     QThread* thread = new QThread();
-    for (size_t i = index; i < files.size(); i += quantity) {
+    for (size_t i = (files.size() / 6) * index; i < (files.size() / 6) * (index + 1); ++i) { // ?
         new_worker->files.push_back(files[i].second);
     }
     new_worker->moveToThread(thread);
