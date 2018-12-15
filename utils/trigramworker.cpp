@@ -24,8 +24,8 @@ void TrigramWorker::process_file(std::pair<QString, QString> const& file_directo
     auto [directory_name, file_name] = file_directory;
     QFile file(file_name);
     if (!file.open(QFile::ReadOnly)) {
-        emit throw_error(file_directory.second.right(file_directory.second.size() -
-                         file_directory.first.size() + QDir(file_directory.first).dirName().size()));
+        emit throw_error(file_name.right(file_name.size() - directory_name.size() +
+                                         QDir(directory_name).dirName().size()));
         return;
     }
     const int BUFFER_SIZE = 1 << 18;
@@ -55,7 +55,7 @@ void TrigramWorker::process_file(std::pair<QString, QString> const& file_directo
             break;
         }
         if (cur_set->size() == MAXIMUM) {
-            trigrams.erase(directory_name);
+            trigrams[directory_name].erase(file_name);
             break;
         }
         buffer = stream.read(BUFFER_SIZE);

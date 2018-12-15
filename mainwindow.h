@@ -47,6 +47,7 @@ signals:
     void clear_details();
 
 private:
+    void action();
     QString get_directory_name(int row);
     void add_directory(QString const& dir);
     void remove_directory(int row);

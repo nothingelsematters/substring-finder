@@ -188,7 +188,11 @@ void MainWindow::normalize_directories(bool checkbox_state) {
     }
 }
 
-std::pair<DirectoryScanner*, QThread*> MainWindow::new_dir_scanner() {
+void MainWindow::action() {
+    ui->preprocessCheckBox->setDisabled(true);
+    ui->firstMatchCheckbox->setDisabled(true);
+    ui->hiddenCheckbox->setDisabled(true);
+    ui->recursiveCheckbox->setDisabled(true);
     ui->detailsList->clear();
     ui->detailsList->setHidden(true);
     emit clear_details();
@@ -198,7 +202,10 @@ std::pair<DirectoryScanner*, QThread*> MainWindow::new_dir_scanner() {
     ui->prepareButton->setDisabled(true);
     ui->actionRemove_Directories_From_List->setDisabled(true);
     ui->actionAdd_Directory->setDisabled(true);
+}
 
+std::pair<DirectoryScanner*, QThread*> MainWindow::new_dir_scanner() {
+    action();
     QThread* worker_thread = new QThread();
     DirectoryScanner* dir_scanner = new DirectoryScanner(get_parameters(), preprocessing);
     dir_scanner->moveToThread(worker_thread);
@@ -229,6 +236,10 @@ void MainWindow::handle_scan_button() {
 }
 
 void MainWindow::finished_process() {
+    ui->preprocessCheckBox->setDisabled(false);
+    ui->firstMatchCheckbox->setDisabled(false);
+    ui->hiddenCheckbox->setDisabled(false);
+    ui->recursiveCheckbox->setDisabled(false);
     ui->prepareButton->setDisabled(false);
     ui->actionRemove_Directories_From_List->setDisabled(false);
     ui->actionAdd_Directory->setDisabled(false);
@@ -251,15 +262,7 @@ void MainWindow::preparations() {
     if (preprocessing == nullptr) {
         preprocessing = new std::map<QString, std::map<QString, std::set<int64_t>>>();
     }
-    ui->detailsList->clear();
-    ui->detailsList->setHidden(true);
-    emit clear_details();
-
-    ui->scanButton->setDisabled(true);
-    ui->cancelButton->setHidden(false);
-    ui->prepareButton->setDisabled(true);
-    ui->actionRemove_Directories_From_List->setDisabled(true);
-    ui->actionAdd_Directory->setDisabled(true);
+    action();
     ui->directoriesTable->setStyleSheet("QProgressBar::chunk { background-color: rgba(0, 0, 255, 100) }");
 
     QThread* thread = new QThread();
