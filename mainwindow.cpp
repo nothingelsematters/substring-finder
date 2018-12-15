@@ -85,6 +85,8 @@ void MainWindow::notification(const char* content,
 
     QTimer* timer = new QTimer();
     connect(timer, &QTimer::timeout, msgbox, &QMessageBox::close);
+    connect(msgbox, &QMessageBox::buttonClicked, msgbox, &QMessageBox::close);
+    connect(msgbox, &QMessageBox::buttonClicked, msgbox, &QMessageBox::deleteLater);
     connect(timer, &QTimer::timeout, timer, &QTimer::stop);
     connect(timer, &QTimer::timeout, timer, &QTimer::deleteLater);
     timer->start(time);
@@ -284,6 +286,9 @@ void MainWindow::preparations() {
 void MainWindow::prepared(std::map<QString, std::map<QString,
                           std::set<int64_t>>>* result) {
     ui->scanButton->setDisabled(false);
+    if (preprocessing != nullptr) {
+        delete preprocessing;
+    }
     preprocessing = result;
     directories_to_preprocess.clear();
 }
