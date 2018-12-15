@@ -16,6 +16,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+QMAKE_CXXFLAGS += -std=c++17
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -25,16 +26,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    utils/filereader.cpp \
-    utils/readerbuffer.cpp \
-    utils/directoryscanner.cpp
+    utils/directoryscanner.cpp \
+    utils/qcharhash.cpp \
+    utils/trigrammanager.cpp \
+    utils/trigramworker.cpp
 
 HEADERS += \
         mainwindow.h \
         utils/parameters.h \
-    utils/filereader.h \
-    utils/readerbuffer.h \
-    utils/directoryscanner.h
+    utils/directoryscanner.h \
+    utils/trigrammanager.h \
+    utils/trigramworker.h
 
 FORMS += \
         mainwindow.ui

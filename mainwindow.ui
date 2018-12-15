@@ -30,46 +30,64 @@
     <item>
      <layout class="QGridLayout" name="mainGrid">
       <item row="1" column="0">
-       <layout class="QHBoxLayout" name="paramsBar">
-        <item>
-         <widget class="QCheckBox" name="hiddenCheckbox">
-          <property name="text">
-           <string>Hidden Files</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="recursiveCheckbox">
-          <property name="text">
-           <string>Recursive</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="firstMatchCheckbox">
-          <property name="text">
-           <string>List Files</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="0">
        <layout class="QGridLayout" name="inputBar">
+        <item row="0" column="0">
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="5">
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="prepareButton">
+          <property name="styleSheet">
+           <string notr="true">QPushButton { color: blue; }
+QPushButton:disabled { color: #aaaaaa; }</string>
+          </property>
+          <property name="text">
+           <string>Prepare</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="2">
+         <widget class="QLineEdit" name="inputString"/>
+        </item>
+        <item row="0" column="4">
          <widget class="QPushButton" name="cancelButton">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Cancel</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="inputString"/>
-        </item>
-        <item row="0" column="1">
+        <item row="0" column="3">
          <widget class="QPushButton" name="scanButton">
           <property name="text">
            <string>Scan for String</string>
@@ -78,22 +96,30 @@
         </item>
        </layout>
       </item>
-      <item row="4" column="0">
-       <widget class="QStatusBar" name="statusBar">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>25</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item row="2" column="0">
        <widget class="QSplitter" name="splitter">
+        <property name="styleSheet">
+         <string notr="true">QProgressBar {
+    border: 1px solid transparent;
+    color:rgba(0,0,0,100);
+	text-align: center;
+    border-radius: 5px;
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(182, 182, 182, 100), stop:1 rgba(209, 209, 209, 100));
+}
+QProgressBar::chunk {
+	background-color: rgba(0,255,0,100);
+}</string>
+        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
         <widget class="QTableWidget" name="directoriesTable">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="sortingEnabled">
+          <bool>false</bool>
+         </property>
          <attribute name="horizontalHeaderStretchLastSection">
           <bool>true</bool>
          </attribute>
@@ -109,6 +135,27 @@
          </column>
         </widget>
         <widget class="QTreeWidget" name="stringsList">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAsNeeded</enum>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustIgnored</enum>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+         </property>
+         <property name="animated">
+          <bool>true</bool>
+         </property>
+         <property name="headerHidden">
+          <bool>false</bool>
+         </property>
          <property name="columnCount">
           <number>1</number>
          </property>
@@ -135,12 +182,84 @@
         </widget>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="4" column="0">
        <widget class="QListWidget" name="detailsList">
         <property name="enabled">
          <bool>true</bool>
         </property>
        </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QStatusBar" name="statusBar">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>25</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <layout class="QHBoxLayout" name="paramsBar">
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="hiddenCheckbox">
+          <property name="styleSheet">
+           <string notr="true">.hiddenCheckBox {
+	margin-left: 20px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Hidden Files</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="recursiveCheckbox">
+          <property name="text">
+           <string>Recursive</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="firstMatchCheckbox">
+          <property name="text">
+           <string>List Files</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="preprocessCheckBox">
+          <property name="whatsThis">
+           <string/>
+          </property>
+          <property name="text">
+           <string>Preprocess</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -182,6 +301,9 @@
   <action name="actionAdd_Directory">
    <property name="text">
     <string>&amp;Add Directory...</string>
+   </property>
+   <property name="statusTip">
+    <string/>
    </property>
   </action>
   <action name="actionRemove_Directories_From_List">
